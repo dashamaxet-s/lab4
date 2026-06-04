@@ -1,0 +1,39 @@
+name: жоская проверка 
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  проверка:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: забираем код из репозитория
+        uses: actions/checkout@v4
+
+      - name: установка языка Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Lint with go vet(проверка стиля кода)
+        run: go vet ./...
+
+      - name: Run tests with coverage(прогон тестов)
+        run: go test -v -cover ./...
+
+      - name: Build binary (сборка под разные системы)
+        run: |
+          GOOS=linux GOARCH=amd64 go build -o myapp-linux
+          GOOS=windows GOARCH=amd64 go build -o myapp.exe
+          GOOS=darwin GOARCH=amd64 go build -o myapp-mac
+
+      - name: Upload artifact(сохранение бинарников)
+        uses: actions/upload-artifact@v4
+        with:
+          name: builds
+          path: |
+            myapp-linux
+            myapp.exe
+            myapp-mac
